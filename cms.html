@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CMS — Panel de Edición · Henska</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    body { background: #F0EEE8; }
+
+    .cms-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: 100vh;
+    }
+
+    .cms-sidebar {
+      background: var(--n900);
+      padding: 24px 16px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .cms-brand {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      color: #fff;
+      margin-bottom: 4px;
+      font-weight: 400;
+    }
+
+    .cms-brand-sub {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+
+    .cms-nav-section {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      margin: 20px 0 8px;
+      padding: 0 8px;
+    }
+
+    .cms-nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      color: rgba(255,255,255,0.65);
+      cursor: pointer;
+      transition: all var(--transition);
+      margin-bottom: 2px;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: var(--font-body);
+    }
+
+    .cms-nav-link:hover, .cms-nav-link.active {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+    }
+
+    .cms-nav-link.active {
+      background: var(--green);
+      color: #fff;
+    }
+
+    .cms-main {
+      padding: 32px;
+      max-width: 900px;
+    }
+
+    .cms-page { display: none; }
+    .cms-page.active { display: block; }
+
+    .cms-section-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      color: var(--n900);
+      margin-bottom: 6px;
+      font-weight: 400;
+    }
+
+    .cms-section-sub {
+      font-size: 0.875rem;
+      color: var(--n500);
+      margin-bottom: 28px;
+    }
+
+    .field-group {
+      background: #fff;
+      border: 1px solid var(--n100);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .field-group-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: #FAFAF9;
+      border-bottom: 1px solid var(--n100);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .field-group-title {
+      font-weight: 500;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .field-group-body { padding: 20px; display: none; }
+    .field-group.open .field-group-body { display: block; }
+
+    .field-toggle { font-size: 1rem; transition: transform var(--transition); }
+    .field-group.open .field-toggle { transform: rotate(180deg); }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .field-row.full { grid-template-columns: 1fr; }
+
+    .field-label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--n700);
+      margin-bottom: 5px;
+      letter-spacing: 0.3px;
+    }
+
+    .field-input {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--n100);
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-family: var(--font-body);
+      color: var(--n900);
+      background: var(--n50);
+      transition: border-color var(--transition);
+    }
+
+    .field-input:focus {
+      outline: none;
+      border-color: var(--green);
+      background: #fff;
+    }
+
+    textarea.field-input { resize: vertical; min-height: 80px; line-height: 1.6; }
+
+    .field-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--n50);
+    }
+
+    .toggle-label { font-size: 0.875rem; color: var(--n700); }
+
+    .toggle-switch {
+      position: relative;
+      width: 36px;
+      height: 20px;
+    }
+
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--n300);
+      border-radius: var(--radius-pill);
+      transition: background var(--transition);
+    }
+
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 14px; height: 14px;
+      left: 3px; bottom: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform var(--transition);
+    }
+
+    input:checked + .toggle-slider { background: var(--green); }
+    input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+    .features-editor { display: flex; flex-direction: column; gap: 6px; }
+
+    .feature-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .feature-row input { flex: 1; }
+
+    .btn-icon {
+      width: 32px; height: 32px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--n100);
+      background: var(--n50);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background var(--transition);
+      flex-shrink: 0;
+    }
+
+    .btn-icon:hover { background: var(--n100); }
+    .btn-icon.danger:hover { background: #FEE2E2; border-color: #FCA5A5; }
+
+    .cms-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff;
+      border: 1px solid var(--n100);
+      border-radius: var(--radius-lg);
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .cms-status {
+      font-size: 0.82rem;
+      color: var(--n500);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--n300);
+    }
+
+    .status-dot.saved { background: #22c55e; }
+
+    .btn-save {
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-pill);
+      padding: 9px 20px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-body);
+      transition: background var(--transition);
+    }
+
+    .btn-save:hover { background: var(--green-dark); }
+
+    .btn-reset {
+      background: transparent;
+      color: var(--n500);
+      border: 1px solid var(--n100);
+      border-radius: var(--radius-pill);
+      padding: 9px 16px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      font-family: var(--font-body);
+      transition: all var(--transition);
+    }
+
+    .btn-reset:hover { border-color: #FCA5A5; color: #DC2626; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--n900);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      z-index: 9999;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    @media (max-width: 768px) {
+      .cms-layout { grid-template-columns: 1fr; }
+      .cms-sidebar { height: auto; position: static; }
+      .cms-main { padding: 16px; }
+      .field-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cms-layout">
+
+  <!-- SIDEBAR -->
+  <div class="cms-sidebar">
+    <div class="cms-brand">Henska</div>
+    <div class="cms-brand-sub">Panel CMS</div>
+
+    <div class="cms-nav-section">Configuración</div>
+    <button class="cms-nav-link active" data-page="config" onclick="showPage('config', this)">⚙️ General</button>
+
+    <div class="cms-nav-section">Tarot</div>
+    <button class="cms-nav-link" data-page="tarot-completas" onclick="showPage('tarot-completas', this)">🔮 Completas</button>
+    <button class="cms-nav-link" data-page="tarot-rapidas" onclick="showPage('tarot-rapidas', this)">⚡ Rápidas</button>
+    <button class="cms-nav-link" data-page="tarot-sueltas" onclick="showPage('tarot-sueltas', this)">🃏 Sueltas</button>
+
+    <div class="cms-nav-section">Radiestesia</div>
+    <button class="cms-nav-link" data-page="radiestesia" onclick="showPage('radiestesia', this)">📡 Sesiones</button>
+
+    <div class="cms-nav-section">Contenido</div>
+    <button class="cms-nav-link" data-page="testimonios" onclick="showPage('testimonios', this)">💬 Testimonios</button>
+    <button class="cms-nav-link" data-page="faq" onclick="showPage('faq', this)">❓ FAQ</button>
+
+    <div style="margin-top:32px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.1);">
+      <a href="index.html" target="_blank" class="cms-nav-link" style="color:var(--green-light);">🌐 Ver sitio</a>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="cms-main">
+
+    <div class="toast" id="toast"></div>
+
+    <!-- TOOLBAR -->
+    <div class="cms-toolbar">
+      <div class="cms-status">
+        <div class="status-dot" id="status-dot"></div>
+        <span id="status-text">Sin cambios</span>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn-reset" onclick="resetData()">↺ Resetear todo</button>
+        <button class="btn-save" onclick="saveData()">✓ Guardar cambios</button>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
+    <div class="cms-page active" id="page-config">
+      <div class="cms-section-title">Configuración General</div>
+      <div class="cms-section-sub">Datos básicos del sitio que aparecen en todos lados.</div>
+      <div style="background:#fff; border:1px solid var(--n100); border-radius:var(--radius-lg); padding:24px;">
+        <div class="field-row">
+          <div>
+            <label class="field-label">Número de WhatsApp (con código de país, sin +)</label>
+            <input type="text" class="field-input" id="config-whatsapp" placeholder="5491112345678">
+          </div>
+          <div>
+            <label class="field-label">Instagram (URL completa)</label>
+            <input type="text" class="field-input" id="config-instagram" placeholder="https://instagram.com/henska">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAROT COMPLETAS -->
+    <div class="cms-page" id="page-tarot-completas">
+      <div class="cms-section-title">Lecturas Completas</div>
+      <div class="cms-section-sub">Se muestran en la página de Tarot y en el selector de sesiones.</div>
+      <div id="editor-tarot-completas"></div>
+    </div>
+
+    <!-- TAROT RAPIDAS -->
+    <div class="cms-page" id="page-tarot-rapidas">
+      <div class="cms-section-title">Lecturas Rápidas</div>
+      <div class="cms-section-sub">Para situaciones concretas. Se muestran en terracota.</div>
+      <div id="editor-tarot-rapidas"></div>
+    </div>
+
+    <!-- TAROT SUELTAS -->
+    <div class="cms-page" id="page-tarot-sueltas">
+      <div class="cms-section-title">Lecturas Sueltas</div>
+      <div class="cms-section-sub">Preguntas concretas y eventos.</div>
+      <div id="editor-tarot-sueltas"></div>
+    </div>
+
+    <!-- RADIESTESIA -->
+    <div class="cms-page" id="page-radiestesia">
+      <div class="cms-section-title">Sesiones de Radiestesia</div>
+      <div class="cms-section-sub">Se muestran en la página de Radiestesia en color terracota.</div>
+      <div id="editor-radiestesia"></div>
+    </div>
+
+    <!-- TESTIMONIOS -->
+    <div class="cms-page" id="page-testimonios">
+      <div class="cms-section-title">Testimonios</div>
+      <div class="cms-section-sub">Aparecen en Home y en la página Sobre mí.</div>
+      <div id="editor-testimonios"></div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="cms-page" id="page-faq">
+      <div class="cms-section-title">Preguntas Frecuentes</div>
+      <div class="cms-section-sub">Aparecen en Home, Tarot y Radiestesia.</div>
+      <div id="editor-faq"></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="data/sessions.js"></script>
+<script src="js/main.js"></script>
+<script>
+// ── STATE ─────────────────────────────────────────────────────
+let cmsData = null;
+let isDirty = false;
+
+// ── INIT ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  cmsData = JSON.parse(JSON.stringify(getSessionsData())); // deep clone
+  renderAll();
+});
+
+// ── NAVIGATION ────────────────────────────────────────────────
+function showPage(pageId, btn) {
+  document.querySelectorAll('.cms-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.cms-nav-link').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── DIRTY STATE ───────────────────────────────────────────────
+function markDirty() {
+  isDirty = true;
+  document.getElementById('status-dot').className = 'status-dot';
+  document.getElementById('status-text').textContent = 'Hay cambios sin guardar';
+}
+
+// ── RENDER ALL ────────────────────────────────────────────────
+function renderAll() {
+  document.getElementById('config-whatsapp').value = cmsData.whatsapp || '';
+  document.getElementById('config-instagram').value = cmsData.instagram || '';
+
+  document.getElementById('config-whatsapp').oninput =
+  document.getElementById('config-instagram').oninput = function() { markDirty(); };
+
+  renderSessionsEditor('tarot-completas', cmsData.tarot.completas);
+  renderSessionsEditor('tarot-rapidas', cmsData.tarot.rapidas);
+  renderSessionsEditor('tarot-sueltas', cmsData.tarot.sueltas);
+  renderSessionsEditor('radiestesia', cmsData.radiestesia);
+  renderTestimoniosEditor();
+  renderFaqEditor();
+}
+
+// ── SESSION EDITOR ────────────────────────────────────────────
+function renderSessionsEditor(key, sessions) {
+  const container = document.getElementById('editor-' + key);
+  container.innerHTML = '';
+  sessions.forEach((session, idx) => {
+    container.appendChild(buildSessionEditor(key, session, idx));
+  });
+}
+
+function buildSessionEditor(key, session, idx) {
+  const el = document.createElement('div');
+  el.className = 'field-group open';
+  el.innerHTML = `
+    <div class="field-group-header" onclick="this.parentElement.classList.toggle('open')">
+      <div class="field-group-title">${session.icon} ${session.title}</div>
+      <span class="field-toggle">▾</span>
+    </div>
+    <div class="field-group-body">
+      <div class="field-toggle-row">
+        <span class="toggle-label">Mostrar esta sesión en el sitio</span>
+        <label class="toggle-switch">
+          <input type="checkbox" ${session.active ? 'checked' : ''} onchange="updateField('${key}', ${idx}, 'active', this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div style="height:16px;"></div>
+      <div class="field-row">
+        <div>
+          <label class="field-label">Emoji / Ícono</label>
+          <input type="text" class="field-input" value="${session.icon || ''}" oninput="updateField('${key}', ${idx}, 'icon', this.value)">
+        </div>
+        <div>
+          <label class="field-label">Badge (Popular / Más elegido / vacío)</label>
+          <input type="text" class="field-input" value="${session.badge || ''}" placeholder="Dejar vacío para no mostrar" oninput="updateField('${key}', ${idx}, 'badge', this.value || null)">
+        </div>
+      </div>
+      <div class="field-row full">
+        <div>
+          <label class="field-label">Título</label>
+          <input type="text" class="field-input" value="${session.title || ''}" oninput="updateField('${key}', ${idx}, 'title', this.value)">
+        </div>
+      </div>
+      <div class="field-row full">
+        <div>
+          <label class="field-label">Subtítulo (frecuencia sugerida)</label>
+          <input type="text" class="field-input" value="${session.subtitle || ''}" oninput="updateField('${key}', ${idx}, 'subtitle', this.value)">
+        </div>
+      </div>
+      <div class="field-row full">
+        <div>
+          <label class="field-label">Descripción</label>
+          <textarea class="field-input" oninput="updateField('${key}', ${idx}, 'description', this.value)">${session.description || ''}</textarea>
+        </div>
+      </div>
+      <div class="field-row">
+        <div>
+          <label class="field-label">Precio ARS (número)</label>
+          <input type="text" class="field-input" value="${session.priceArs || ''}" oninput="updateField('${key}', ${idx}, 'priceArs', isNaN(this.value) ? this.value : Number(this.value))">
+        </div>
+        <div>
+          <label class="field-label">Precio USD (número, vacío si no aplica)</label>
+          <input type="number" class="field-input" value="${session.priceUsd || ''}" oninput="updateField('${key}', ${idx}, 'priceUsd', this.value ? Number(this.value) : null)">
+        </div>
+      </div>
+      <div>
+        <label class="field-label" style="margin-bottom:10px;">Características incluidas</label>
+        <div class="features-editor" id="features-${key}-${idx}"></div>
+        <button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="addFeature('${key}', ${idx})">+ Agregar ítem</button>
+      </div>
+    </div>
+  `;
+  renderFeatures(key, idx, session.features, el.querySelector(`#features-${key}-${idx}`));
+  return el;
+}
+
+function renderFeatures(key, idx, features, container) {
+  container.innerHTML = '';
+  features.forEach((feat, fi) => {
+    const row = document.createElement('div');
+    row.className = 'feature-row';
+    row.innerHTML = `
+      <input type="text" class="field-input" value="${feat}" oninput="updateFeature('${key}', ${idx}, ${fi}, this.value)">
+      <button class="btn-icon danger" onclick="removeFeature('${key}', ${idx}, ${fi})">✕</button>
+    `;
+    container.appendChild(row);
+  });
+}
+
+function getList(key) {
+  if (key.startsWith('tarot-')) return cmsData.tarot[key.replace('tarot-', '')];
+  return cmsData[key];
+}
+
+function updateField(key, idx, field, value) {
+  getList(key)[idx][field] = value;
+  markDirty();
+}
+
+function updateFeature(key, idx, fi, value) {
+  getList(key)[idx].features[fi] = value;
+  markDirty();
+}
+
+function addFeature(key, idx) {
+  getList(key)[idx].features.push('');
+  const session = getList(key)[idx];
+  const container = document.querySelector(`#features-${key}-${idx}`);
+  renderFeatures(key, idx, session.features, container);
+  markDirty();
+}
+
+function removeFeature(key, idx, fi) {
+  getList(key)[idx].features.splice(fi, 1);
+  const session = getList(key)[idx];
+  const container = document.querySelector(`#features-${key}-${idx}`);
+  renderFeatures(key, idx, session.features, container);
+  markDirty();
+}
+
+// ── TESTIMONIOS EDITOR ────────────────────────────────────────
+function renderTestimoniosEditor() {
+  const container = document.getElementById('editor-testimonios');
+  container.innerHTML = '';
+  cmsData.testimonios.forEach((t, idx) => {
+    const el = document.createElement('div');
+    el.className = 'field-group open';
+    el.innerHTML = `
+      <div class="field-group-header" onclick="this.parentElement.classList.toggle('open')">
+        <div class="field-group-title">💬 ${t.nombre}</div>
+        <span class="field-toggle">▾</span>
+      </div>
+      <div class="field-group-body">
+        <div class="field-toggle-row">
+          <span class="toggle-label">Mostrar este testimonio</span>
+          <label class="toggle-switch">
+            <input type="checkbox" ${t.active ? 'checked' : ''} onchange="cmsData.testimonios[${idx}].active = this.checked; markDirty();">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div style="height:12px;"></div>
+        <div class="field-row">
+          <div>
+            <label class="field-label">Nombre</label>
+            <input type="text" class="field-input" value="${t.nombre}" oninput="cmsData.testimonios[${idx}].nombre = this.value; markDirty();">
+          </div>
+          <div>
+            <label class="field-label">Servicio que tomó</label>
+            <input type="text" class="field-input" value="${t.servicio}" oninput="cmsData.testimonios[${idx}].servicio = this.value; markDirty();">
+          </div>
+        </div>
+        <div class="field-row full">
+          <label class="field-label">Testimonio</label>
+          <textarea class="field-input" oninput="cmsData.testimonios[${idx}].texto = this.value; markDirty();">${t.texto}</textarea>
+        </div>
+      </div>
+    `;
+    container.appendChild(el);
+  });
+}
+
+// ── FAQ EDITOR ────────────────────────────────────────────────
+function renderFaqEditor() {
+  const container = document.getElementById('editor-faq');
+  container.innerHTML = '';
+  cmsData.faq.forEach((f, idx) => {
+    const el = document.createElement('div');
+    el.className = 'field-group open';
+    el.innerHTML = `
+      <div class="field-group-header" onclick="this.parentElement.classList.toggle('open')">
+        <div class="field-group-title">❓ ${f.question.slice(0, 48)}...</div>
+        <span class="field-toggle">▾</span>
+      </div>
+      <div class="field-group-body">
+        <div class="field-toggle-row">
+          <span class="toggle-label">Mostrar esta pregunta</span>
+          <label class="toggle-switch">
+            <input type="checkbox" ${f.active ? 'checked' : ''} onchange="cmsData.faq[${idx}].active = this.checked; markDirty();">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div style="height:12px;"></div>
+        <div class="field-row full">
+          <label class="field-label">Pregunta</label>
+          <input type="text" class="field-input" value="${f.question}" oninput="cmsData.faq[${idx}].question = this.value; markDirty();">
+        </div>
+        <div class="field-row full">
+          <label class="field-label">Respuesta</label>
+          <textarea class="field-input" oninput="cmsData.faq[${idx}].answer = this.value; markDirty();">${f.answer}</textarea>
+        </div>
+      </div>
+    `;
+    container.appendChild(el);
+  });
+}
+
+// ── SAVE ──────────────────────────────────────────────────────
+function saveData() {
+  cmsData.whatsapp = document.getElementById('config-whatsapp').value.trim();
+  cmsData.instagram = document.getElementById('config-instagram').value.trim();
+  const ok = saveSessionsData(cmsData);
+  if (ok) {
+    isDirty = false;
+    document.getElementById('status-dot').className = 'status-dot saved';
+    document.getElementById('status-text').textContent = 'Guardado correctamente';
+    showToast('✓ Cambios guardados. El sitio ya usa los nuevos datos.');
+  } else {
+    showToast('✕ Error al guardar. Revisá el almacenamiento del navegador.');
+  }
+}
+
+function resetData() {
+  if (!confirm('¿Resetear todo a los datos originales? Se perderán los cambios guardados.')) return;
+  localStorage.removeItem('henska_cms_data');
+  cmsData = JSON.parse(JSON.stringify(HENSKA_DATA));
+  renderAll();
+  isDirty = false;
+  document.getElementById('status-dot').className = 'status-dot';
+  document.getElementById('status-text').textContent = 'Datos reseteados';
+  showToast('Datos reseteados a los originales.');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+window.addEventListener('beforeunload', (e) => {
+  if (isDirty) e.preventDefault();
+});
+</script>
+</body>
+</html>
